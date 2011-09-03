@@ -1,0 +1,249 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				           http://www.springframework.org/schema/context
+				           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/webflow-config
+                           http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd">
+
+
+    <!-- ~~~~~~~~~~~~~~~~~~ "BEFORE INVOCATION" AUTHORIZATION DEFINITIONS ~~~~~~~~~~~~~~~~ -->
+
+    <!-- ACL permission masks used by this application -->
+    <bean id="administrationPermission"
+          class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+        <property name="staticField" value="org.springframework.security.acls.domain.BasePermission.ADMINISTRATION"/>
+    </bean>
+    <bean id="readPermission"
+          class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+        <property name="staticField" value="org.springframework.security.acls.domain.BasePermission.READ"/>
+    </bean>
+    <bean id="writePermission"
+          class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+        <property name="staticField" value="org.springframework.security.acls.domain.BasePermission.WRITE"/>
+    </bean>
+    <bean id="deletePermission"
+          class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean">
+        <property name="staticField" value="org.springframework.security.acls.domain.BasePermission.DELETE"/>
+    </bean>
+
+
+    <!-- An access decision voter that reads ROLE_* configuration settings -->
+    <bean id="roleVoter" class="org.springframework.security.vote.RoleVoter"/>
+
+    <!-- An access decision voter that reads ACL_OBJECT_READ configuration settings -->
+    <bean id="aclObjectReadVoter" class="org.springframework.security.vote.AclEntryVoter">
+        <constructor-arg ref="aclService"/>
+        <constructor-arg value="ACL_OBJECT_READ"/>
+        <constructor-arg>
+            <list>
+                <ref local="administrationPermission"/>
+                <ref local="readPermission"/>
+            </list>
+        </constructor-arg>
+        <property name="processDomainObjectClass" value="com.denksoft.springstarter.entity.AbstractSecureObject"/>
+    </bean>
+
+    <!-- An access decision voter that reads ACL_OBJECT_WRITE configuration settings -->
+    <bean id="aclObjectWriteVoter" class="org.springframework.security.vote.AclEntryVoter">
+        <constructor-arg ref="aclService"/>
+        <constructor-arg value="ACL_OBJECT_WRITE"/>
+        <constructor-arg>
+            <list>
+                <ref local="administrationPermission"/>
+                <ref local="writePermission"/>
+            </list>
+        </constructor-arg>
+        <property name="processDomainObjectClass" value="com.denksoft.springstarter.entity.AbstractSecureObject"/>
+    </bean>
+
+    <!-- An access decision voter that reads ACL_CONTACT_DELETE configuration settings -->
+    <bean id="aclObjectDeleteVoter" class="org.springframework.security.vote.AclEntryVoter">
+        <constructor-arg ref="aclService"/>
+        <constructor-arg value="ACL_OBJECT_DELETE"/>
+        <constructor-arg>
+            <list>
+                <ref local="administrationPermission"/>
+                <ref local="deletePermission"/>
+            </list>
+        </constructor-arg>
+        <property name="processDomainObjectClass" value="com.denksoft.springstarter.entity.AbstractSecureObject"/>
+    </bean>
+
+    <!-- An access decision voter that reads ACL_CONTACT_ADMIN configuration settings -->
+    <bean id="aclObjectAdminVoter" class="org.springframework.security.vote.AclEntryVoter">
+        <constructor-arg ref="aclService"/>
+        <constructor-arg value="ACL_OBJECT_ADMIN"/>
+        <constructor-arg>
+            <list>
+                <ref local="administrationPermission"/>
+            </list>
+        </constructor-arg>
+        <property name="processDomainObjectClass" value="com.denksoft.springstarter.entity.AbstractSecureObject"/>
+    </bean>
+
+    <!-- An access decision manager used by the business objects -->
+    <bean id="businessAccessDecisionManager" class="org.springframework.security.vote.UnanimousBased">
+        <property name="allowIfAllAbstainDecisions" value="true"/>
+        <property name="decisionVoters">
+            <list>
+                <ref local="roleVoter"/>
+                <ref local="aclObjectReadVoter"/>
+                <ref local="aclObjectWriteVoter"/>
+                <ref local="aclObjectDeleteVoter"/>
+                <ref local="aclObjectAdminVoter"/>                
+            </list>
+        </property>
+
+    </bean>
+
+
+    <!-- ========= ACCESS CONTROL LIST LOOKUP MANAGER DEFINITIONS ========= -->    
+
+    <bean id="lookupStrategy" class="org.springframework.security.acls.jdbc.BasicLookupStrategy">
+        <constructor-arg ref="dataSource"/>
+        <constructor-arg ref="aclCache"/>
+        <constructor-arg ref="aclAuthorizationStrategy"/>
+        <constructor-arg>
+            <bean class="org.springframework.security.acls.domain.ConsoleAuditLogger"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="aclCache" class="org.springframework.security.acls.jdbc.EhCacheBasedAclCache">
+        <constructor-arg>
+            <bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+                <property name="cacheManager">
+                    <bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"/>
+                </property>
+                <property name="cacheName" value="aclCache"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="aclAuthorizationStrategy" class="org.springframework.security.acls.domain.AclAuthorizationStrategyImpl">
+        <constructor-arg>
+            <list>
+                <bean class="org.springframework.security.GrantedAuthorityImpl">
+                    <constructor-arg value="ROLE_ADMIN"/>
+                </bean>
+                <bean class="org.springframework.security.GrantedAuthorityImpl">
+                    <constructor-arg value="ROLE_ADMIN"/>
+                </bean>
+                <bean class="org.springframework.security.GrantedAuthorityImpl">
+                    <constructor-arg value="ROLE_ADMIN"/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!--<bean id="aclService" class="org.springframework.security.acls.jdbc.JdbcMutableAclService">-->
+    <bean id="aclService" class="com.denksoft.springstarter.util.security.PostgresqlJdbcMutableAclService">
+        <constructor-arg ref="dataSource"/>
+        <constructor-arg ref="lookupStrategy"/>
+        <constructor-arg ref="aclCache"/>
+    </bean>
+
+
+    <!-- ============== "AFTER INTERCEPTION" AUTHORIZATION DEFINITIONS =========== -->
+
+    <bean id="afterInvocationManager"
+          class="org.springframework.security.afterinvocation.AfterInvocationProviderManager">
+        <property name="providers">
+            <list>
+                <ref local="afterAclRead"/>
+                <ref local="afterAclCollectionRead"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- Processes AFTER_ACL_COLLECTION_READ configuration settings -->
+    <bean id="afterAclCollectionRead"
+          class="org.springframework.security.afterinvocation.AclEntryAfterInvocationCollectionFilteringProvider">
+        <constructor-arg ref="aclService"/>
+        <constructor-arg>
+            <list>
+                <ref local="administrationPermission"/>
+                <ref local="readPermission"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!-- Processes AFTER_ACL_READ configuration settings -->
+    <!--<bean id="afterAclRead" class="org.springframework.security.afterinvocation.AclEntryAfterInvocationProvider">-->
+    <bean id="afterAclRead" class="com.denksoft.springstarter.util.security.CustomAclEntryAfterInvocationProvider">
+        <constructor-arg ref="aclService"/>
+        <constructor-arg>
+            <list>
+                <ref local="administrationPermission"/>
+                <ref local="readPermission"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <!-- ================= METHOD INVOCATION AUTHORIZATION ==================== -->
+
+    <!-- getRandomContact() is public.
+
+    The create, getAll, getById etc have ROLE_USER to ensure user is
+    authenticated (all users hold ROLE_USER in this application).
+
+    The delete and update methods don't need a ROLE_USER as they will
+    ensure the user is authenticated via their ACL_CONTACT_DELETE or
+    ACL_CONTACT_READ attribute, which also ensures the user has permission
+    to the Contact presented as a method argument.
+
+    Autowired to pick up authentication manager from namespace config.
+
+    -->
+
+    <bean id="objectDefinitionSource" class="org.springframework.security.annotation.SecuredMethodDefinitionSource" />
+
+   <!-- <bean id="objectManagerSecurityAdvisor"
+          class="org.springframework.security.intercept.method.aopalliance.MethodDefinitionSourceAdvisor">
+        <constructor-arg index="0" ref="objectManagerSecurity"/>    
+    </bean>-->
+
+    <bean id="objectManagerSecurity"
+          class="org.springframework.security.intercept.method.aopalliance.MethodSecurityInterceptor" autowire="byType">        
+        <property name="accessDecisionManager" ref="businessAccessDecisionManager"/>
+        <property name="afterInvocationManager" ref="afterInvocationManager"/>        
+        <property name="objectDefinitionSource" ref="objectDefinitionSource"/>
+    </bean>
+
+
+    <!-- ============================= Security Util ============================= -->
+
+    <bean id="aclSecurityUtil" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <qualifier value="aclSecurity"/>
+        <property name="proxyInterfaces" value="com.denksoft.springstarter.util.security.AclSecurityUtil"/>
+        <property name="interceptorNames">
+            <list>
+                <idref local="transactionInterceptor"/>
+                <idref local="aclSecurityUtilTarget"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="transactionInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor"
+          p:transactionManager-ref="jdbcTransactionManager">
+        <property name="transactionAttributeSource">
+            <value>
+                com.denksoft.springstarter.util.security.AclSecurityUtil.deletePermission=PROPAGATION_REQUIRED
+                com.denksoft.springstarter.util.security.AclSecurityUtil.addPermission=PROPAGATION_REQUIRED
+            </value>
+        </property>
+    </bean>
+
+    <bean id="jdbcTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+          p:dataSource-ref="dataSource"/>
+
+    <bean id="aclSecurityUtilTarget" class="com.denksoft.springstarter.util.security.AclSecurityUtilImpl"
+          p:mutableAclService-ref="aclService"/>
+
+    <!-- ============================= Security Util ============================= -->
+
+</beans>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+    <secured attributes="ROLE_CUSTOMER"/>
+    <persistence-context/>
+    <var name="bankAccountOperation" class="com.denksoft.springstarter.entity.BankAccountOperation" />
+    <on-start>
+        <evaluate expression="customerService.getCustomerBankAccountsMap()" result="flowScope.bankAccounts"/>
+    </on-start>
+
+    <view-state id="enterBankAccountOperationDetails" view="/customer/bankAccountOperation-form" model="bankAccountOperation">
+        <on-entry>
+            <evaluate expression="bankAccountOperation.getAvailableOperationTypes()" result="viewScope.availableOperationTypes"/>
+        </on-entry>
+        <transition on="submit" to="confirm" />
+        <transition on="cancel" to="canceled"/>
+    </view-state>
+
+    <view-state id="confirm" view="/customer/bankAccountOperation-confirm" model="bankAccountOperation">
+        <transition on="save" to="saved">
+            <evaluate expression="persistenceContext.save(bankAccountOperation)"/>
+        </transition>
+        <transition on="edit" to="enterBankAccountOperationDetails"/>
+    </view-state>
+
+    <end-state id="saved" view="/customer/bankAccountOperation-saved" commit="true">
+        <on-entry>
+            <evaluate expression="securityService.setBankAccountOperationPermissions(bankAccountOperation)"/>
+        </on-entry>
+    </end-state>
+
+    <end-state id="canceled" view="redirect:/app/customer/welcome.task" commit="false"/>
+</flow>

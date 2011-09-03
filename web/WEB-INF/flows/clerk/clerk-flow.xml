@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+    <secured attributes="ROLE_CLERK"/>
+    <persistence-context/>
+    <var name="clerk" class="com.denksoft.springstarter.entity.Clerk" />
+
+    <input name="id" required="false"/>    
+
+    <on-start>
+        <evaluate expression="clerkService.getClerk(id)" result="flowScope.clerk" />
+    </on-start>
+
+    <view-state id="enterClerkDetails" view="/clerk/clerk-form" model="clerk">
+        <transition on="submit" to="confirm" />
+        <transition on="cancel" to="cancel" bind="false"/>
+    </view-state>
+
+    <view-state id="confirm" view="/clerk/clerk-confirm" model="clerk">
+        <transition on="save" to="saved"/>
+        <transition on="edit" to="enterClerkDetails"/>
+    </view-state>
+
+    <end-state id="saved" view="/clerk/clerk-saved" commit="true">
+        <on-entry>
+            <evaluate expression="persistenceContext.saveOrUpdate(clerk.getUser())" />
+            <evaluate expression="persistenceContext.saveOrUpdate(clerk)" />
+        </on-entry>
+    </end-state>
+
+    <end-state id="cancel" commit="false"/>
+</flow>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+    <secured attributes="ROLE_CLERK"/>
+    <persistence-context/>
+    <var name="account" class="com.denksoft.springstarter.entity.BankAccount" />
+    <on-start>
+        <evaluate expression="customerService.getAllCustomers()" result="flowScope.customers"/>
+    </on-start>
+
+    <view-state id="enterAccountDetails" view="/clerk/account-form" model="account">
+        <transition on="submit" to="confirm" />
+        <transition on="cancel" to="cancel" bind="false"/>
+    </view-state>
+
+    <view-state id="confirm" view="/clerk/account-confirm" model="account">
+        <on-entry>
+            <evaluate expression="dao.get('com.denksoft.springstarter.entity.Customer', account.getCustomer().getId())" result="account.customer"/>
+        </on-entry>
+        <transition on="save" to="saved"/>
+        <transition on="edit" to="enterAccountDetails"/>
+    </view-state>
+
+    <end-state id="saved" view="/clerk/account-saved" commit="true">
+        <on-entry>
+            <evaluate expression="persistenceContext.save(account)"/>
+            <evaluate expression="securityService.setBankAccountPermissions(account)"/>
+        </on-entry>
+    </end-state>
+
+    <end-state id="cancel" commit="false"/>
+</flow>

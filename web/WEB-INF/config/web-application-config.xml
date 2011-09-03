@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				           http://www.springframework.org/schema/context
+				           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/webflow-config
+                           http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+
+    <!--
+		- The controllers are autodetected POJOs labeled with the @Controller annotation.
+	-->
+    <context:component-scan base-package="com.denksoft.springstarter.web" />
+
+    <!--
+		Activates various annotations to be detected in bean classes:
+		Spring's @Required and @Autowired, as well as JSR 250's @Resource.
+	-->
+    <context:annotation-config/>
+    
+    <tx:annotation-driven transaction-manager="hibernateTransactionManager"/>
+
+    <!-- Imports the configurations of the different infrastructure systems of the application -->
+	<import resource="webmvc-config.xml" />
+	<import resource="webflow-config.xml" />
+	<import resource="security-config.xml" />
+    <import resource="data-access-config.xml" />
+    
+</beans>

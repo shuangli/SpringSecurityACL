@@ -1,0 +1,100 @@
+<project name="spring starter app" default="make">
+
+
+    <property name="sourcedir" value="${basedir}/src"/>
+    <property name="generated.home" value="${basedir}/src"/>
+    <property name="exploded" value="${basedir}/out/exploded/" />
+    <property name="targetdir"      value="${exploded}/WEB-INF/classes"/>
+    <property name="scripts" value="${basedir}/scripts" />
+
+    <path id="my_classpath">
+       <pathelement location="${targetdir}"/>
+
+       <fileset dir="web/WEB-INF/lib">
+          <include name="*.jar" />
+        </fileset>
+
+    </path>
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${exploded}"/>
+        <mkdir dir="${targetdir}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${targetdir}"/>
+        <mkdir dir="${targetdir}"/>
+    </target>
+
+    <target name="make" depends="compile">
+        <copy file="${sourcedir}/hibernate.cfg.xml" todir="${exploded}/WEB-INF/classes" overwrite="true" />
+    </target>
+
+    <target name="jsp-deploy">
+        <copy todir="${basedir}/out/exploded" overwrite="true">
+            <fileset dir="${basedir}/web/resources">
+                <include name="**/*.jsp"/>
+                <include name="**/*.js"/>
+                <include name="**/*.css"/>
+            </fileset>
+        </copy>
+
+         <copy todir="${basedir}/out/exploded/WEB-INF/jsp" overwrite="true">
+            <fileset dir="${basedir}/web/WEB-INF/jsp">
+                <include name="**/*.jsp"/>
+                <include name="**/*.js"/>
+                <include name="**/*.css"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${basedir}/out/exploded/WEB-INF/bundles" overwrite="true">
+            <fileset dir="${basedir}/web/WEB-INF/bundles">
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>
+
+        <copy todir="${basedir}/out/exploded/WEB-INF/classes" overwrite="true">
+            <fileset dir="${basedir}/web/WEB-INF/classes">
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="jsp-deploy-full" depends="jsp-deploy">
+        <copy todir="${basedir}/out/exploded" overwrite="true">
+            <fileset dir="${basedir}/web/resources">
+                <include name="**/*.png"/>
+                <include name="**/*.html"/>
+                <include name="**/*.txt"/>
+                <include name="**/*.gif"/>
+                <include name="**/*.jpg"/>
+                <include name="**/*.xml"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="deploy-WEB-INF">
+        <copy todir="${basedir}/out/exploded/WEB-INF" overwrite="true">
+            <fileset dir="${basedir}/web/WEB-INF">
+                <include name="**/*.properties"/>
+                <include name="**/*.xml"/>
+                <include name="**/*.tld"/>
+                <include name="**/*.jar"/>
+                <include name="**/*.jrxml"/>
+                <include name="**/*.jasper"/>
+                <include name="**/*.ttf"/>
+        <include name="**/*.tag"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="compile" depends="init">
+      <javac srcdir="${sourcedir}" destdir="${targetdir}" debug="on" classpathref="my_classpath"/>
+    </target>
+
+    <target name="update-mappings">
+        <exec executable="${scripts}/update-mappings.sh" />
+    </target>
+
+</project>

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+ "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+<!-- BEGIN -->
+        <mapping class="com.denksoft.springstarter.entity.security.User" />
+        <mapping class="com.denksoft.springstarter.entity.security.Authority" />
+        <mapping class="com.denksoft.springstarter.entity.Marker" />
+        <mapping class="com.denksoft.springstarter.entity.Customer" />
+        <mapping class="com.denksoft.springstarter.entity.AbstractSecureObject" />
+        <mapping class="com.denksoft.springstarter.entity.BankAccountOperation" />
+        <mapping class="com.denksoft.springstarter.entity.BankAccount" />
+        <mapping class="com.denksoft.springstarter.entity.Clerk" />
+<!-- END -->
+    </session-factory>
+</hibernate-configuration>

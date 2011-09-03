@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				           http://www.springframework.org/schema/context
+				           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/webflow-config
+                           http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd">
+
+
+    <!-- The registry of executable flow definitions -->
+    <webflow:flow-registry id="flowRegistry" flow-builder-services="flowBuilderServices">
+        <webflow:flow-location-pattern value="/WEB-INF/flows/**/*-flow.xml"/>
+    </webflow:flow-registry>
+
+    <!-- Executes flows: the central entry point into the Spring Web Flow system -->
+    <webflow:flow-executor id="flowExecutor" flow-registry="flowRegistry">
+        <webflow:flow-execution-listeners>
+            <webflow:listener ref="hibernateFlowExecutionListener"/>
+            <webflow:listener ref="progressFlowExecutionListener"/>
+            <webflow:listener ref="securityFlowExecutionListener"/>
+        </webflow:flow-execution-listeners>
+    </webflow:flow-executor>
+
+    <webflow:flow-builder-services id="flowBuilderServices" view-factory-creator="mvcViewFactoryCreator"
+                                   expression-parser="expressionParser" conversion-service="conversionService"/>
+
+    <!-- Installs a listener to apply Spring Security authorities -->
+    <bean id="securityFlowExecutionListener"
+          class="org.springframework.webflow.security.SecurityFlowExecutionListener"/>
+
+    <!--Progress bar listener-->
+    <bean id="progressFlowExecutionListener" class="com.denksoft.springstarter.util.webflow.ProgressFlowExecutionListener"/>
+
+    <bean id="expressionFactory" class="org.jboss.el.ExpressionFactoryImpl"/>
+
+    <bean id="expressionParser" class="org.springframework.webflow.expression.el.WebFlowELExpressionParser">
+        <constructor-arg index="0" ref="expressionFactory"/>
+        <property name="conversionService" ref="conversionService"/>
+    </bean>
+
+    <bean id="conversionService" class="com.denksoft.springstarter.util.conversion.ApplicationConversionService"/>
+
+</beans>

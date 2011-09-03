@@ -1,0 +1,51 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"       
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				           http://www.springframework.org/schema/context
+				           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/webflow-config
+                           http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd">
+
+    <!-- this MessageSource is being used in a web application -->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basename" value="/WEB-INF/bundles/application"/>
+        <property name="defaultEncoding" value="UTF8"/>
+    </bean>
+
+
+    <bean id="dao" class="com.denksoft.springstarter.dao.Dao" p:sessionFactory-ref="sessionFactory" />
+
+    <bean id="clerkServiceTarget" class="com.denksoft.springstarter.service.impl.ClerkServiceImpl"/>
+   
+    <bean id="clerkService" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <qualifier value="clerkService"/>
+        <property name="proxyInterfaces" value="com.denksoft.springstarter.service.ClerkService"/>
+        <property name="interceptorNames">
+            <list>
+                <idref bean="objectManagerSecurity"/>
+                <idref local="clerkServiceTarget"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="customerServiceTarget" class="com.denksoft.springstarter.service.impl.CustomerServiceImpl"/>
+
+    <bean id="customerService" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <qualifier value="customerService"/>
+        <property name="proxyInterfaces" value="com.denksoft.springstarter.service.CustomerService"/>
+        <property name="interceptorNames">
+            <list>
+                <idref bean="objectManagerSecurity"/>
+                <idref local="customerServiceTarget"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="publicService" class="com.denksoft.springstarter.service.impl.PublicServiceImpl"/>
+
+
+</beans>

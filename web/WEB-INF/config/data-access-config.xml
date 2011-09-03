@@ -1,0 +1,40 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				           http://www.springframework.org/schema/context
+				           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/webflow-config
+                           http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd">
+
+    <!-- Configurer that replaces ${...} placeholders with values from a properties file -->
+    <!-- (in this case, Hibernate-related settings for the dataSource definition below) -->
+    <context:property-placeholder location="WEB-INF/classes/hibernate.properties"/>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+          p:driverClassName="${hibernate.connection.driver_class}"
+          p:url="${hibernate.connection.url}"
+          p:username="${hibernate.connection.username}"
+          p:password="${hibernate.connection.password}"/>
+
+    <!--Load hibernate properties from file-->
+    <bean id="hibernateProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean"
+          p:location="WEB-INF/classes/hibernate.properties"/>
+
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+          p:hibernateProperties-ref="hibernateProperties"
+          p:configLocation="classpath:hibernate.cfg.xml"/>
+
+    <bean id="hibernateTransactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"
+          p:sessionFactory-ref="sessionFactory"/>
+
+    <bean id="hibernateFlowExecutionListener"
+          class="org.springframework.webflow.persistence.HibernateFlowExecutionListener">
+        <constructor-arg index="0" ref="sessionFactory"/>
+        <constructor-arg index="1" ref="hibernateTransactionManager"/>
+    </bean>
+
+</beans>

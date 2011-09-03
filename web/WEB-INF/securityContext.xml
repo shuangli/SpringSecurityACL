@@ -1,0 +1,43 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:webflow="http://www.springframework.org/schema/webflow-config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				           http://www.springframework.org/schema/context
+				           http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                           http://www.springframework.org/schema/webflow-config
+                           http://www.springframework.org/schema/webflow-config/spring-webflow-config-2.0.xsd">
+
+    <!-- ============ CUSTOM USER SERVICE ============== -->
+
+    <bean id="userDetailsServiceWrapper"
+          class="com.denksoft.springstarter.util.security.CustomUserDetailsServiceWrapper"
+          p:roleHierarchy-ref="roleHierarchy"
+          p:userDetailsService-ref="usersDetailServiceJdbc"
+          p:sessionFactory-ref="sessionFactory">
+        <property name="userInfoObjectTypes" >
+            <list>
+                <value>com.denksoft.springstarter.entity.Clerk</value>
+                <value>com.denksoft.springstarter.entity.Customer</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="roleHierarchy"
+          class="org.springframework.security.userdetails.hierarchicalroles.RoleHierarchyImpl">
+        <property name="hierarchy">
+            <value>
+                ROLE_CLERK > ROLE_CUSTOMER
+            </value>
+        </property>
+    </bean>
+
+    <bean id="usersDetailServiceJdbc"
+          class="org.springframework.security.userdetails.jdbc.JdbcDaoImpl"
+          p:dataSource-ref="dataSource"
+          p:authoritiesByUsernameQuery="select users_username as username, authority from users_authorities inner join authorities on authorities_id=id where users_username = ?"/>
+
+    <bean id="securityService" class="com.denksoft.springstarter.service.impl.SecurityServiceImpl" />
+</beans>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+    <persistence-context/>
+
+    <var name="customer" class="com.denksoft.springstarter.entity.Customer" />
+
+    <on-start>
+        <evaluate expression="customerService.setupCustomer(customer)" result="customer"/>
+    </on-start>
+
+    <view-state id="enterCustomerDetails" view="/public/customer-form" model="customer">
+        <transition on="submit" to="confirm" />
+        <transition on="cancel" to="canceled"/>
+    </view-state>
+
+    <view-state id="confirm" view="/public/customer-confirm" model="customer">
+        <transition on="save" to="saved"/>
+        <transition on="edit" to="enterCustomerDetails"/>
+    </view-state>
+
+    <end-state id="saved" view="/public/customer-saved" commit="true">
+        <on-entry>
+            <evaluate expression="persistenceContext.save(customer)"/>
+            <evaluate expression="securityService.setCustomerPermissions(customer)" />
+        </on-entry>
+    </end-state>
+
+    <end-state id="canceled" view="redirect:/app/index.task" commit="false"/>
+
+</flow>
